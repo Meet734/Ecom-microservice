@@ -32,7 +32,10 @@ export const connectDB = async () => {
         await sequelize.sync({ alter: env.NODE_ENV === 'development' });
         console.log('[Auth DB] Models synchronized');
     } catch (err) {
-        console.error('[Auth DB] Connection failed:', err.message);
+        console.error('❌ [Auth DB] CONNECTION CRASHED!');
+        console.error('--- START OF ERROR FULL OBJECT ---');
+        console.error(err); // <-- CHANGE THIS: Print the entire object, not just err.message
+        console.error('--- END OF ERROR FULL OBJECT ---');
         process.exit(1);
     }
 };

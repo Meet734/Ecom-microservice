@@ -52,7 +52,7 @@ const start = async () => {
     await connectDB();
     await connectRedis();
 
-    app.listen(env.PORT, () => {
+    app.listen(env.PORT, '0.0.0.0', () => {
         console.log(`[Auth Service] Running on port ${env.PORT} in ${env.NODE_ENV} mode`);
     });
 };

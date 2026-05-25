@@ -2,6 +2,13 @@
 **/node_modules/
 npm-debug.log
 npm-debug.log*
+package-lock.json
+yarn.lock
+
+# Next.js (Frontend)
+frontend/.next/
+frontend/out/
+frontend/build/
 
 # Environment variables
 **/.env
@@ -20,3 +27,6 @@ tmp/
 # Logs
 logs/
 *.log
+
+#learnings
+prompts/

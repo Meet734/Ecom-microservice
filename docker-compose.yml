@@ -1,0 +1,89 @@
+services:
+  # --- INFRASTRUCTURE LAYER ---
+  redis:
+    image: redis:7-alpine
+    container_name: ecomm_redis
+    ports:
+      - "6379:6379"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: ecomm_rabbitmq
+    ports:
+      - "15672:15672" # Keeping management dashboard available
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  postgres:
+      image: postgres:16-alpine
+      container_name: ecomm_postgres
+      environment:
+        POSTGRES_USER: admin
+        POSTGRES_PASSWORD: password123
+        POSTGRES_DB: ecomm_db
+      ports:
+        - "5432:5432" # added this
+      volumes:
+        - pgdata:/var/lib/postgresql/data
+      deploy:
+        resources:
+          limits:
+            memory: 512M
+
+  mongodb:
+    image: mongo:6-jammy
+    container_name: ecomm_mongo
+    volumes:
+      - mongodata:/data/db
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+    container_name: ecomm_elastic
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticdata:/usr/share/elasticsearch/data
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  # --- APPLICATION SERVICES LAYER ---
+  auth-service:
+    build: ./services/auth-service
+    container_name: ecomm_auth_service
+    ports:
+      - "3001:3001" # This maps your API route out so your browser/Postman can test it
+    volumes:
+      - ./services/auth-service:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=ecomm_db
+      - DB_USER=admin
+      - DB_PASSWORD=password123
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - postgres
+      - redis
+
+volumes:
+  pgdata:
+  mongodata:
+  elasticdata:

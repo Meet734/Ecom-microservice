@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import useAuthStore from '@/store/authStore';
-import Input from '@/components/ui/Input';
-import Button from '@/components/ui/Button';
-import Alert from '@/components/ui/Alert';
+import Input from '@/components/Ui/Input';
+import Button from '@/components/Ui/Button';
+import Alert from '@/components/Ui/Alert';
 
 // Password strength scorer — purely visual feedback
 function getPasswordStrength(password) {

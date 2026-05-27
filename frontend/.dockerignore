@@ -1,0 +1,10 @@
+node_modules
+npm-debug.log
+.next
+out
+build
+.DS_Store
+*.swp
+*.swo
+.env
+.env.local

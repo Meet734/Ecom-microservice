@@ -36,12 +36,9 @@ services:
     ports:
       - "3001:3001"
     volumes:
-      # Mount your Windows code into the container
       - ./services/auth-service:/usr/src/app
-      # CRITICAL: Preserve Linux node_modules, don't let Windows node_modules overwrite it
       - /usr/src/app/node_modules
     environment:
-      # Inside Docker, service names resolve to container IPs via Docker DNS
       - NODE_ENV=${NODE_ENV:-development}
       - PORT=3001
       - DB_HOST=postgres
@@ -69,11 +66,8 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      # Mount frontend code for hot reload
       - ./frontend:/app
-      # Don't overwrite node_modules
       - /app/node_modules
-      # Don't overwrite .next build
       - /app/.next
     environment:
       - NODE_ENV=${NODE_ENV:-development}

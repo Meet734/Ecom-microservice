@@ -7,6 +7,7 @@ import env from './src/config/env.js';
 import { connectDB } from './src/config/db.js';
 import { connectRedis } from './src/config/redis.js';
 import authRoutes from './src/routes/auth.routes.js';
+import { connectRabbitMQ } from './src/config/rabbitmq.js';
 
 const app = express();
 
@@ -51,6 +52,7 @@ app.use((req, res) => {
 const start = async () => {
     await connectDB();
     await connectRedis();
+    await connectRabbitMQ();
 
     app.listen(env.PORT, '0.0.0.0', () => {
         console.log(`[Auth Service] Running on port ${env.PORT} in ${env.NODE_ENV} mode`);

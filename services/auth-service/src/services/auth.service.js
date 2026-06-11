@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import User from '../models/user.model.js';
+import { publishUserRegistered } from '../events/publisher.js';
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -43,6 +44,7 @@ export const register = async ({ email, password, role = 'customer' }, meta = {}
     const password_hash = await bcrypt.hash(password, env.BCRYPT_ROUNDS);
 
     const user   = await User.create({ email, password_hash, role });
+    await publishUserRegistered({ userId: user.id, email: user.email, role: user.role });
     const tokens = await buildTokenPair(user, meta);
 
     return { user: safeUser(user), ...tokens };

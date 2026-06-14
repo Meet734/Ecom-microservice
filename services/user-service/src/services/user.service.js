@@ -6,7 +6,10 @@ import sequelize from '../config/db.js';
 export const getProfile = async (authUserId) => {
     const profile = await Profile.findOne({
         where: { auth_user_id: authUserId },
-        include: [{ model: Address, as: 'addresses', order: [['is_default', 'DESC']] }],
+        include: [{ model: Address, as: 'addresses' }],
+        order: [
+            [{ model: Address, as: 'addresses' }, 'is_default', 'DESC']
+        ],
     });
 
     if (!profile) {

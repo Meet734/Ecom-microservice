@@ -1,5 +1,5 @@
 import sequelize from '../config/db.js';
-import { QueryTypes } from 'sequelize';
+import { QueryTypes, Op } from 'sequelize';
 import Inventory from '../models/inventory.model.js';
 import StockMovement from '../models/stockMovement.model.js';
 
@@ -74,15 +74,13 @@ export const restock = async (productId, quantity, notes = '') => {
 
 export const decrementStock = async (productId, quantity, orderId) => {
   return await sequelize.transaction(async (t) => {
-    const [rowsUpdated] = await sequelize.query(
-      `UPDATE inventory
-       SET quantity = quantity - :qty,
-           updated_at = NOW()
-       WHERE product_id = :productId
-         AND quantity >= :qty`,
+    const [rowsUpdated] = await Inventory.update(
+      { quantity: sequelize.literal(`quantity - ${quantity}`) },
       {
-        replacements: { qty: quantity, productId },
-        type: QueryTypes.UPDATE,
+        where: {
+          product_id: productId,
+          quantity: { [Op.gte]: quantity },
+        },
         transaction: t,
       }
     );

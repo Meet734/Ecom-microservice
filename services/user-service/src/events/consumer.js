@@ -56,15 +56,23 @@ const handleEvent = async (routingKey, payload) => {
     }
 };
 
-const handleUserRegistered = async ({ userId, email }) => {
+const handleUserRegistered = async ({ userId, email, name }) => {
     const existing = await Profile.findOne({ where: { auth_user_id: userId } });
     if (existing) {
         console.log(`[Consumer] Profile already exists for userId=${userId}, skipping`);
         return;
     }
 
-    await Profile.create({ auth_user_id: userId });
-    console.log(`[Consumer] Profile created for userId=${userId}`);
+    let first_name = '';
+    let last_name = '';
+    if (name) {
+        const parts = name.trim().split(/\s+/);
+        first_name = parts[0] || '';
+        last_name = parts.slice(1).join(' ') || '';
+    }
+
+    await Profile.create({ auth_user_id: userId, first_name, last_name });
+    console.log(`[Consumer] Profile created for userId=${userId} with name="${first_name} ${last_name}"`);
 };
 
 const handleUserDeactivated = async ({ userId }) => {

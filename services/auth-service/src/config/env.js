@@ -25,6 +25,9 @@ const env = cleanEnv(process.env, {
 
     // Bcrypt
     BCRYPT_ROUNDS: num({ default: 12 }),
+
+    // RabbitMQ
+    RABBITMQ_URL: str({ default: 'amqp://guest:guest@localhost:5672' }),
 });
 
 export default env;

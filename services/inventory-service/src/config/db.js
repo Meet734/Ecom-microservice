@@ -11,13 +11,18 @@ const sequelize = new Sequelize(env.DB_NAME, env.DB_USER, env.DB_PASSWORD, {
     min: 0,
     idle: 10000,
   },
+  define: {
+    timestamps: true,
+    underscored: false,
+    freezeTableName: true,
+  },
 });
 
 export const connectDB = async () => {
   try {
     await sequelize.authenticate();
     console.log('[Inventory Service] Database connected successfully');
-    await sequelize.sync({ alter: false });
+    await sequelize.sync({ alter: env.NODE_ENV === 'development' });
   } catch (err) {
     console.error('[Inventory Service] Database connection failed:', err.message);
     process.exit(1);

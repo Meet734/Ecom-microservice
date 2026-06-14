@@ -11,17 +11,21 @@ import Alert from '@/components/Ui/Alert';
 export default function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login, isLoading, error, clearError, isAuthenticated } = useAuthStore();
+  const { login, isLoading, error, clearError, isAuthenticated, hydrate } = useAuthStore();
 
   const [form, setForm] = useState({ email: '', password: '' });
   const [fieldErrors, setFieldErrors] = useState({});
   const [sessionExpired] = useState(searchParams.get('session') === 'expired');
 
-  // Redirect if already logged in
+  // Hydrate from localStorage and redirect if already logged in
   useEffect(() => {
-    if (isAuthenticated()) router.replace('/');
+    hydrate();
     return () => clearError();
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) router.replace('/dashboard');
+  }, [isAuthenticated]);
 
   const validate = () => {
     const errs = {};
@@ -51,7 +55,8 @@ export default function LoginContent() {
 
     const result = await login(form.email.trim().toLowerCase(), form.password);
     if (result.success) {
-      router.push('/');
+      const next = searchParams.get('next') || '/dashboard';
+      router.push(next);
     }
   };
 
@@ -77,12 +82,14 @@ export default function LoginContent() {
 
       {/* API error */}
       {error && (
-        <Alert type="error" message={error} onClose={clearError} />
+        <Alert type="error" message={error} onDismiss={clearError} />
       )}
 
       {/* Form */}
       <form onSubmit={handleSubmit} noValidate className="space-y-4">
         <Input
+          id="email"
+          label="Email"
           type="email"
           required
           autoComplete="email"
@@ -90,16 +97,20 @@ export default function LoginContent() {
           placeholder="you@example.com"
           value={form.email}
           onChange={handleChange('email')}
+          error={fieldErrors.email}
         />
 
         <div className="space-y-1.5">
           <Input
+            id="password"
+            label="Password"
             type="password"
             required
             autoComplete="current-password"
             placeholder="••••••••"
             value={form.password}
             onChange={handleChange('password')}
+            error={fieldErrors.password}
           />
           <div className="flex justify-end">
             <Link
@@ -114,10 +125,11 @@ export default function LoginContent() {
         <div className="pt-1">
           <Button
             type="submit"
+            size="full"
+            isLoading={isLoading}
             disabled={isLoading}
-            className="w-full"
           >
-            {isLoading ? 'Signing in...' : 'Sign in'}
+            {isLoading ? 'Signing in…' : 'Sign in'}
           </Button>
         </div>
       </form>

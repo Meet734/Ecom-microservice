@@ -1,85 +1,159 @@
-import esClient from '../config/elasticsearch.js';
+import { Op } from 'sequelize';
+import Product from '../models/product.model.js';
+import Category from '../models/category.model.js';
+import { indexProduct, removeProduct, searchProducts } from '../search/elasticsearch.service.js';
 
-const INDEX = 'products';
+const slugify = (value) =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
 
-// Index a product document — called after create/update in PostgreSQL
-export const indexProduct = async (product) => {
-  try {
-    await esClient.index({
-      index: INDEX,
-      id:    product.id,
-      document: {
-        id:          product.id,
-        name:        product.name,
-        description: product.description,
-        category:    product.category_id,
-        brand:       product.brand,
-        price:       product.price,
-        is_active:   product.is_active,
-        created_at:  product.created_at,
-      },
-    });
-  } catch (err) {
-    // Log but don't throw — ES sync failure should not break the API response.
-    // The product is saved in PG. ES is eventually consistent.
-    console.error('[ES] Failed to index product:', err.message);
+export const createCategory = async ({ name, description, parent_id }) => {
+  const slug = slugify(name);
+
+  const existing = await Category.findOne({ where: { [Op.or]: [{ name }, { slug }] } });
+  if (existing) {
+    const err = new Error('Category already exists');
+    err.statusCode = 409;
+    throw err;
   }
+
+  return Category.create({ name, slug, description, parent_id });
 };
 
-// Remove a product from search index on delete
-export const removeProduct = async (productId) => {
-  try {
-    await esClient.delete({ index: INDEX, id: productId });
-  } catch (err) {
-    console.error('[ES] Failed to remove product:', err.message);
-  }
+export const getCategories = async () => {
+  return Category.findAll({
+    where: { is_active: true },
+    order: [['name', 'ASC']],
+  });
 };
 
-// Full-text search with filters
-export const searchProducts = async ({ query, category, minPrice, maxPrice, page = 1, limit = 20 }) => {
-  const from = (page - 1) * limit;
+export const deleteCategory = async (id) => {
+  const category = await Category.findByPk(id);
+  if (!category) {
+    const err = new Error('Category not found');
+    err.statusCode = 404;
+    throw err;
+  }
+  // Soft-delete — keeps historical product references intact
+  await category.update({ is_active: false });
+  return { message: 'Category deactivated successfully' };
+};
 
-  const must   = [];
-  const filter = [{ term: { is_active: true } }];
+export const createProduct = async (data) => {
+  const slug = slugify(data.name);
 
-  if (query) {
-    must.push({
-      multi_match: {
-        query,
-        fields:     ['name^3', 'description', 'brand^2'],
-        // Boost name matches 3x, brand 2x — relevance tuning
-        fuzziness:  'AUTO',  // handles typos: "iphone" matches "iPhoe"
-        type:       'best_fields',
-      },
-    });
+  const existing = await Product.findOne({ where: { [Op.or]: [{ slug }, { sku: data.sku }] } });
+  if (existing) {
+    const err = new Error('Product with this name or SKU already exists');
+    err.statusCode = 409;
+    throw err;
   }
 
-  if (category)              filter.push({ term:  { category } });
-  if (minPrice !== undefined) filter.push({ range: { price: { gte: minPrice } } });
-  if (maxPrice !== undefined) filter.push({ range: { price: { lte: maxPrice } } });
+  const product = await Product.create({ ...data, slug });
+  await indexProduct(product);
+  return product;
+};
 
-  const result = await esClient.search({
-    index: INDEX,
-    body: {
-      from,
-      size: limit,
-      query: {
-        bool: {
-          must:   must.length ? must : [{ match_all: {} }],
-          filter,
-        },
-      },
-      sort: query
-        ? [{ _score: 'desc' }]
-        : [{ created_at: 'desc' }],  // no query = newest first
-    },
+export const getProductById = async (id) => {
+  const product = await Product.findByPk(id, {
+    include: [{ model: Category, as: 'category', attributes: ['id', 'name', 'slug'] }],
+  });
+
+  if (!product || !product.is_active) {
+    const err = new Error('Product not found');
+    err.statusCode = 404;
+    throw err;
+  }
+
+  return product;
+};
+
+export const getProductForOrder = async (id) => {
+  const product = await Product.findOne({
+    where: { id, is_active: true },
+    attributes: ['id', 'name', 'price', 'sku'],
+  });
+
+  if (!product) {
+    const err = new Error('Product not found');
+    err.statusCode = 404;
+    throw err;
+  }
+
+  return product;
+};
+
+export const listProducts = async ({ category_id, page = 1, limit = 20, sort = 'created_at' }) => {
+  const where = { is_active: true };
+  if (category_id) where.category_id = category_id;
+
+  const offset = (page - 1) * limit;
+  const order = sort.startsWith('-')
+    ? [[sort.slice(1), 'DESC']]
+    : [[sort, 'ASC']];
+
+  const { rows: products, count: total } = await Product.findAndCountAll({
+    where,
+    include: [{ model: Category, as: 'category', attributes: ['id', 'name', 'slug'] }],
+    order,
+    limit,
+    offset,
   });
 
   return {
-    total:    result.hits.total.value,
-    products: result.hits.hits.map(hit => ({ id: hit._id, ...hit._source })),
+    data: products,
+    total,
     page,
     limit,
-    pages:    Math.ceil(result.hits.total.value / limit),
+    pages: Math.ceil(total / limit),
   };
+};
+
+export const searchProductsCatalog = searchProducts;
+
+export const updateProduct = async (id, updates, user) => {
+  const product = await Product.findByPk(id);
+
+  if (!product) {
+    const err = new Error('Product not found');
+    err.statusCode = 404;
+    throw err;
+  }
+
+  if (user.role === 'seller' && product.seller_id !== user.userId) {
+    const err = new Error('Insufficient permissions');
+    err.statusCode = 403;
+    throw err;
+  }
+
+  if (updates.name) {
+    updates.slug = slugify(updates.name);
+  }
+
+  await product.update(updates);
+  await indexProduct(product);
+  return product;
+};
+
+export const deleteProduct = async (id, user) => {
+  const product = await Product.findByPk(id);
+
+  if (!product) {
+    const err = new Error('Product not found');
+    err.statusCode = 404;
+    throw err;
+  }
+
+  if (user.role === 'seller' && product.seller_id !== user.userId) {
+    const err = new Error('Insufficient permissions');
+    err.statusCode = 403;
+    throw err;
+  }
+
+  await product.update({ is_active: false });
+  await removeProduct(id);
+  return { message: 'Product deleted successfully' };
 };

@@ -10,6 +10,7 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ecomm_db"]
       interval: 5s
@@ -58,14 +59,20 @@ services:
       - JWT_REFRESH_EXPIRY_MS=604800000
       - BCRYPT_ROUNDS=12
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000,http://frontend:3000}
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     restart: unless-stopped
 
   frontend:
     build: ./frontend
     container_name: ecomm_frontend
+    command: npm run dev
     ports:
       - "3000:3000"
     volumes:
@@ -77,7 +84,12 @@ services:
       - /app/.next
     environment:
       - NODE_ENV=${NODE_ENV:-development}
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://auth-service:3001}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+      - NEXT_PUBLIC_AUTH_SERVICE_URL=http://auth-service:3001
+      - NEXT_PUBLIC_USER_SERVICE_URL=http://user-service:3002
+      - NEXT_PUBLIC_PRODUCT_SERVICE_URL=http://product-service:3003
+      - NEXT_PUBLIC_INVENTORY_SERVICE_URL=http://inventory-service:3005
+      - NEXT_PUBLIC_ORDER_SERVICE_URL=http://order-service:3004
     depends_on:
       - auth-service
     restart: unless-stopped
@@ -149,11 +161,13 @@ services:
       - "50051:50051"  # gRPC port
     volumes:
       - ./services/product-service:/usr/src/app
+      - ./proto:/usr/src/app/proto
       - /usr/src/app/node_modules
     environment:
       - NODE_ENV=${NODE_ENV:-development}
       - PORT=3003
       - GRPC_PORT=50051
+      - PROTO_PATH=/usr/src/app/proto/product.proto
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=ecomm_product_db
@@ -196,6 +210,39 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    restart: unless-stopped
+
+  order-service:
+    build: ./services/order-service
+    container_name: ecomm_order_service
+    ports:
+      - "3004:3004"
+    volumes:
+      - ./services/order-service:/usr/src/app
+      - ./proto:/usr/src/app/proto
+      - /usr/src/app/node_modules
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=3004
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=ecomm_order_db
+      - DB_USER=${POSTGRES_USER:-admin}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-changeme}
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
+      - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET:-changeme}
+      - PRODUCT_GRPC_HOST=product-service
+      - PRODUCT_GRPC_PORT=50051
+      - PROTO_PATH=/usr/src/app/proto/product.proto
+      - USER_SERVICE_URL=http://user-service:3002
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000,http://frontend:3000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      product-service:
+        condition: service_started
     restart: unless-stopped
 
   notification-service:

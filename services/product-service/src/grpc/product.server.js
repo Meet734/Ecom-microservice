@@ -13,7 +13,8 @@ import env from '../config/env.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Load the proto file — shared contract between product-service and order-service
-const PROTO_PATH = path.join(__dirname, '../../../../proto/product.proto');
+const PROTO_PATH = process.env.PROTO_PATH
+  || path.join(__dirname, '../../../../proto/product.proto');
 
 const packageDef = protoLoader.loadSync(PROTO_PATH, {
   keepCase:     true,

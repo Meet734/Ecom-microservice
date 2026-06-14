@@ -5,6 +5,7 @@
     "dev": "nodemon index.js"
   },
   "dependencies": {
+    "amqplib": "^0.10.4",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",

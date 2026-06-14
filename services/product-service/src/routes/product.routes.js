@@ -11,8 +11,9 @@ router.get('/search',          controller.searchProducts);
 router.get('/',                controller.listProducts);
 router.get('/:id',             controller.getProduct);
 
-// Protected: admin can create categories
+// Protected: admin can create/delete categories
 router.post('/categories', authenticate, authorize('admin'), validate('createCategory'), controller.createCategory);
+router.delete('/categories/:id', authenticate, authorize('admin'), controller.deleteCategory);
 
 // Protected: sellers and admins can manage products
 router.post('/',     authenticate, authorize('seller', 'admin'), validate('createProduct'), controller.createProduct);

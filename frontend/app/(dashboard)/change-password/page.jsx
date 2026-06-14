@@ -22,7 +22,7 @@ export default function ChangePasswordPage() {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated()) {
+    if (!isAuthenticated) {
       router.replace('/login');
     }
     return () => clearError();
@@ -35,8 +35,8 @@ export default function ChangePasswordPage() {
 
     if (!form.newPassword)
       errs.newPassword = 'New password is required.';
-    else if (form.newPassword.length < 8)
-      errs.newPassword = 'New password must be at least 8 characters.';
+    else if (form.newPassword.length < 6)
+      errs.newPassword = 'New password must be at least 6 characters.';
     else if (form.newPassword === form.oldPassword)
       errs.newPassword = 'New password must differ from current password.';
 
@@ -136,11 +136,11 @@ export default function ChangePasswordPage() {
             type="password"
             required
             autoComplete="new-password"
-            placeholder="Min. 8 characters"
+            placeholder="Min. 6 characters"
             value={form.newPassword}
             onChange={handleChange('newPassword')}
             error={fieldErrors.newPassword}
-            hint="Must be at least 8 characters."
+            hint="Must be at least 6 characters."
           />
 
           <Input

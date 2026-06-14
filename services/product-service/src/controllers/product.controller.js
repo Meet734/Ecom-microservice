@@ -14,6 +14,13 @@ export const getCategories = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+export const deleteCategory = async (req, res, next) => {
+  try {
+    const result = await productService.deleteCategory(req.params.id);
+    return res.status(200).json({ success: true, ...result });
+  } catch (err) { next(err); }
+};
+
 export const createProduct = async (req, res, next) => {
   try {
     const product = await productService.createProduct({

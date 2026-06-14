@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 // Routes that require authentication
-const PROTECTED_ROUTES = ['/orders', '/profile', '/change-password', '/dashboard'];
+const PROTECTED_ROUTES = ['/orders', '/profile', '/change-password', '/dashboard', '/addresses', '/products', '/inventory', '/categories'];
 
 const AUTH_ROUTES = ['/login', '/register'];
 

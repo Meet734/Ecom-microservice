@@ -31,3 +31,6 @@ logs/
 
 #learnings
 prompts/
+.obsidian-vault/.obsidian/workspace.json
+.obsidian-vault/.obsidian/workspace-mobile.json
+.understand-anything/

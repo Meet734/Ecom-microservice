@@ -36,9 +36,10 @@ const ROLES = [
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register, isLoading, error, clearError, isAuthenticated } = useAuthStore();
+  const { register, isLoading, error, clearError, isAuthenticated, hydrate } = useAuthStore();
 
   const [form, setForm] = useState({
+    name: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -48,12 +49,18 @@ export default function RegisterPage() {
   const strength = getPasswordStrength(form.password);
 
   useEffect(() => {
-    if (isAuthenticated()) router.replace('/');
+    hydrate();
     return () => clearError();
   }, []);
 
+  useEffect(() => {
+    if (isAuthenticated) router.replace('/dashboard');
+  }, [isAuthenticated]);
+
   const validate = () => {
     const errs = {};
+    if (!form.name.trim())
+      errs.name = 'Name is required.';
     if (!form.email)
       errs.email = 'Email is required.';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
@@ -61,8 +68,8 @@ export default function RegisterPage() {
 
     if (!form.password)
       errs.password = 'Password is required.';
-    else if (form.password.length < 8)
-      errs.password = 'Password must be at least 8 characters.';
+    else if (form.password.length < 6)
+      errs.password = 'Password must be at least 6 characters.';
 
     if (!form.confirmPassword)
       errs.confirmPassword = 'Please confirm your password.';
@@ -90,10 +97,11 @@ export default function RegisterPage() {
     const result = await register(
       form.email.trim().toLowerCase(),
       form.password,
-      form.role
+      form.role,
+      form.name.trim()
     );
     if (result.success) {
-      router.push('/');
+      router.push('/dashboard');
     }
   };
 
@@ -144,12 +152,24 @@ export default function RegisterPage() {
         </div>
 
         <Input
+          id="name"
+          label="Full name"
+          type="text"
+          required
+          autoComplete="name"
+          autoFocus
+          placeholder="John Doe"
+          value={form.name}
+          onChange={handleChange('name')}
+          error={fieldErrors.name}
+        />
+
+        <Input
           id="email"
           label="Email"
           type="email"
           required
           autoComplete="email"
-          autoFocus
           placeholder="you@example.com"
           value={form.email}
           onChange={handleChange('email')}
@@ -163,7 +183,7 @@ export default function RegisterPage() {
             type="password"
             required
             autoComplete="new-password"
-            placeholder="Min. 8 characters"
+            placeholder="Min. 6 characters"
             value={form.password}
             onChange={handleChange('password')}
             error={fieldErrors.password}

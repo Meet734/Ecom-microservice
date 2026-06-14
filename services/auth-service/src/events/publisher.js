@@ -2,12 +2,12 @@ import { getChannel } from '../config/rabbitmq.js';
 
 const EXCHANGE = 'auth.events';
 
-export const publishUserRegistered = async ({ userId, email, role }) => {
+export const publishUserRegistered = async ({ userId, email, role, name }) => {
   try {
     const channel = getChannel();
     await channel.assertExchange(EXCHANGE, 'topic', { durable: true });
 
-    const message = Buffer.from(JSON.stringify({ userId, email, role, timestamp: new Date() }));
+    const message = Buffer.from(JSON.stringify({ userId, email, role, name, timestamp: new Date() }));
 
     channel.publish(EXCHANGE, 'user.registered', message, {
       persistent:   true,   // survive RabbitMQ restart

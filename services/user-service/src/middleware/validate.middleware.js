@@ -14,7 +14,7 @@ const schemas = {
         full_name: Joi.string().max(200).required(),
         phone: Joi.string().max(20).required(),
         line1: Joi.string().max(255).required(),
-        line2: Joi.string().max(255).optional(),
+        line2: Joi.string().max(255).allow(null, '').optional(),
         city: Joi.string().max(100).required(),
         state: Joi.string().max(100).required(),
         pincode: Joi.string().max(10).required(),

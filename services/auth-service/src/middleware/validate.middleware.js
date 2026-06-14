@@ -5,13 +5,9 @@ import Joi from 'joi';
 const schemas = {
     register: Joi.object({
         email: Joi.string().email().max(255).required(),
-        password: Joi.string().min(8).max(128)
-                    .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-                    .required()
-                    .messages({
-                    'string.pattern.base': 'Password must contain uppercase, lowercase, and a number'
-                    }),
+        password: Joi.string().min(6).max(128).required(),
         role: Joi.string().valid('customer', 'seller').default('customer'),
+        name: Joi.string().max(100).optional(),
     }),
 
     login: Joi.object({
@@ -21,13 +17,11 @@ const schemas = {
 
     changePassword: Joi.object({
         oldPassword: Joi.string().required(),
-        newPassword: Joi.string().min(8).max(128)
-                        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-                        .required(),
+        newPassword: Joi.string().min(6).max(128).required(),
     }),
 
     refresh: Joi.object({
-        refreshToken: Joi.string().required(),
+        refreshToken: Joi.string().optional(),
     }),
 };
 

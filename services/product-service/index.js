@@ -7,6 +7,7 @@ import { connectDB } from './src/config/db.js';
 import { connectRedis } from './src/config/redis.js';
 import { connectElasticsearch } from './src/config/elasticsearch.js';
 import { startGrpcServer } from './src/grpc/product.server.js';
+import { seedCategories } from './src/seed/categories.js';
 import productRoutes from './src/routes/product.routes.js';
 
 const app = express();
@@ -34,6 +35,7 @@ app.use((req, res) => {
 
 const start = async () => {
   await connectDB();
+  await seedCategories();
   await connectRedis();
   await connectElasticsearch();
   startGrpcServer(); // gRPC on port 50051

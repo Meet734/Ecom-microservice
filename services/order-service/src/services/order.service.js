@@ -225,6 +225,9 @@ export const cancelOrder = async (orderId, userId, role, reason) => {
         throw err;
     }
 
+    // Capture status BEFORE mutation — order.update() changes the in-memory value
+    const previousStatus = order.status;
+
     await order.update({
         status:           'cancelled',
         cancelled_reason: reason || null,
@@ -232,7 +235,7 @@ export const cancelOrder = async (orderId, userId, role, reason) => {
 
     // Publish order.cancelled — consumed by inventory-service to restore stock.
     // Only publish if order was confirmed (stock was decremented).
-    if (order.status === 'confirmed') {
+    if (previousStatus === 'confirmed') {
         publishOrderCancelled({
             orderId: order.id,
             items:   order.items.map(i => ({

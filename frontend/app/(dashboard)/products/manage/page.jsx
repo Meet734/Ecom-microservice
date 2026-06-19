@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { productApi } from '@/lib/api';
+import { productApi, inventoryApi } from '@/lib/api';
 import useAuthStore from '@/store/authStore';
 import Input from '@/components/Ui/Input';
 import Button from '@/components/Ui/Button';
@@ -30,6 +30,9 @@ export default function ManageProductPage() {
     category_id: '',
     images: '',
     attributes: '',
+    initial_stock: '100',
+    low_stock_threshold: '10',
+    warehouse_location: 'Default-WH-01',
   });
 
   useEffect(() => {
@@ -92,11 +95,33 @@ export default function ManageProductPage() {
         }
       }
 
-      await productApi.create(payload);
-      setSuccess('Product created successfully!');
+      const { data: createdProductRes } = await productApi.create(payload);
+      const newProduct = createdProductRes?.data || createdProductRes;
+
+      let stockInitialized = false;
+      if (newProduct?.id) {
+        try {
+          await inventoryApi.initialize({
+            productId:           newProduct.id,
+            quantity:            parseInt(form.initial_stock) || 0,
+            low_stock_threshold: parseInt(form.low_stock_threshold) || 10,
+            warehouse_location:  form.warehouse_location || 'Default-WH-01',
+          });
+          stockInitialized = true;
+        } catch (invErr) {
+          console.error('Failed to initialize stock:', invErr);
+        }
+      }
+
+      if (stockInitialized) {
+        setSuccess('Product created and stock initialized successfully!');
+      } else {
+        setSuccess('Product created successfully, but stock initialization failed. You can initialize it from the Dashboard.');
+      }
       setForm((prev) => ({
         name: '', description: '', price: '', compare_price: '',
         sku: '', brand: '', category_id: prev.category_id, images: '', attributes: '',
+        initial_stock: '100', low_stock_threshold: '10', warehouse_location: 'Default-WH-01',
       }));
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create product.');
@@ -276,6 +301,42 @@ export default function ManageProductPage() {
               ))}
             </select>
           </div>
+
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 pt-2">Inventory Setup</h2>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              id="initial_stock"
+              label="Initial Stock"
+              required
+              type="number"
+              min="0"
+              placeholder="100"
+              value={form.initial_stock}
+              onChange={handleChange('initial_stock')}
+            />
+            <Input
+              id="low_stock_threshold"
+              label="Low Stock Threshold"
+              required
+              type="number"
+              min="0"
+              placeholder="10"
+              value={form.low_stock_threshold}
+              onChange={handleChange('low_stock_threshold')}
+            />
+          </div>
+
+          <Input
+            id="warehouse_location"
+            label="Warehouse Location"
+            required
+            placeholder="Default-WH-01"
+            value={form.warehouse_location}
+            onChange={handleChange('warehouse_location')}
+          />
+
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 pt-2">Additional Options</h2>
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="images" className="text-sm font-medium text-zinc-700">

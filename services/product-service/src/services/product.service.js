@@ -74,7 +74,7 @@ export const getProductById = async (id) => {
 export const getProductForOrder = async (id) => {
   const product = await Product.findOne({
     where: { id, is_active: true },
-    attributes: ['id', 'name', 'price', 'sku'],
+    attributes: ['id', 'name', 'price', 'sku', 'seller_id'],
   });
 
   if (!product) {
@@ -86,9 +86,10 @@ export const getProductForOrder = async (id) => {
   return product;
 };
 
-export const listProducts = async ({ category_id, page = 1, limit = 20, sort = 'created_at' }) => {
+export const listProducts = async ({ category_id, seller_id, page = 1, limit = 20, sort = 'created_at' }) => {
   const where = { is_active: true };
   if (category_id) where.category_id = category_id;
+  if (seller_id) where.seller_id = seller_id;
 
   const offset = (page - 1) * limit;
   const order = sort.startsWith('-')

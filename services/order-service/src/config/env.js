@@ -26,6 +26,7 @@ const env = cleanEnv(process.env, {
 
     // Internal service URLs (for REST calls)
     USER_SERVICE_URL: str({ default: 'http://localhost:3002' }),
+    INVENTORY_SERVICE_URL: str({ default: 'http://localhost:3005' }),
 
     ALLOWED_ORIGINS: str({ default: 'http://localhost:3000' }),
 });

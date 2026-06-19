@@ -3,7 +3,7 @@ import axios from 'axios';
 // Browser requests go through Next.js rewrites (same origin),
 // so baseURL is '' on client. On server (SSR), we need absolute URLs.
 const API_BASE = typeof window === 'undefined'
-  ? (process.env.NEXT_PUBLIC_API_URL || 'http://auth-service:3001')
+  ? (process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://api-gateway:8000')
   : '';
 
 const api = axios.create({
@@ -187,6 +187,25 @@ export const orderApi = {
 
     updateStatus: (orderId, payload) =>
         api.patch(`/api/orders/${orderId}/status`, payload),
+
+    // Seller
+    getSellerStats: () =>
+        api.get('/api/orders/seller/stats'),
+
+    getSellerOrders: (params = {}) =>
+        api.get('/api/orders/seller/orders', { params }),
+};
+
+// Payment Service API Methods
+export const paymentApi = {
+    checkout: (payload) =>
+        api.post('/api/payments', payload),
+
+    getHistory: () =>
+        api.get('/api/payments/history'),
+
+    getByOrder: (orderId) =>
+        api.get(`/api/payments/order/${orderId}`),
 };
 
 export default api;

@@ -9,7 +9,7 @@ import Alert from '@/components/Ui/Alert';
 
 export default function InventoryPage() {
   const { user } = useAuthStore();
-  const isAdmin = user?.role === 'admin';
+  const isAllowed = user?.role === 'admin' || user?.role === 'seller';
 
   const [error,   setError]   = useState('');
   const [success, setSuccess] = useState('');
@@ -19,13 +19,13 @@ export default function InventoryPage() {
   const [inventory,     setInventory]     = useState(null);
   const [lookupLoading, setLookupLoading] = useState(false);
 
-  // Initialize (admin only)
+  // Initialize
   const [initForm, setInitForm] = useState({
     productId: '', quantity: '', low_stock_threshold: '10', warehouse_location: '',
   });
   const [initSaving, setInitSaving] = useState(false);
 
-  // Restock (admin only)
+  // Restock
   const [restockForm, setRestockForm] = useState({ productId: '', quantity: '', notes: '' });
   const [restockSaving, setRestockSaving] = useState(false);
 
@@ -95,10 +95,10 @@ export default function InventoryPage() {
         </p>
       </div>
 
-      {!isAdmin && (
+      {!isAllowed && (
         <Alert
           type="info"
-          message="Stock lookup is available to all users. Initialize and restock operations require admin access."
+          message="Stock lookup is available to all users. Initialize and restock operations require seller or admin access."
         />
       )}
 
@@ -163,8 +163,8 @@ export default function InventoryPage() {
         )}
       </div>
 
-      {/* ── Admin-only operations ── */}
-      {isAdmin ? (
+      {/* ── Admin/Seller operations ── */}
+      {isAllowed ? (
         <>
           {/* Initialize */}
           <div className="rounded-xl border border-zinc-200 bg-white p-6 space-y-4">
@@ -231,7 +231,7 @@ export default function InventoryPage() {
         </>
       ) : (
         <div className="rounded-xl border border-zinc-100 bg-zinc-50 p-6 text-center text-sm text-zinc-400">
-          Initialize and restock operations are restricted to <strong className="text-zinc-600">admin</strong> accounts.
+          Initialize and restock operations are restricted to <strong className="text-zinc-600">seller or admin</strong> accounts.
         </div>
       )}
     </div>

@@ -17,11 +17,13 @@ const OrderItem = sequelize.define('order_items', {
         onDelete: 'CASCADE',
     },
     product_id: {
-        // References product-service product. No FK across DBs.
         type: DataTypes.UUID,
         allowNull: false,
     },
-    // Snapshot of product data at time of order
+    seller_id: {
+        type: DataTypes.UUID,
+        allowNull: true,
+    },
     product_name: {
         type: DataTypes.STRING(255),
         allowNull: false,
@@ -33,7 +35,6 @@ const OrderItem = sequelize.define('order_items', {
     unit_price: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        comment: 'Price per unit in paise at time of order',
     },
     quantity: {
         type: DataTypes.INTEGER,
@@ -41,15 +42,14 @@ const OrderItem = sequelize.define('order_items', {
         validate: { min: 1 },
     },
     total_price: {
-        // unit_price * quantity — stored explicitly to avoid recalculation bugs
         type: DataTypes.INTEGER,
         allowNull: false,
-        comment: 'unit_price * quantity in paise',
     },
 }, {
     indexes: [
         { fields: ['order_id'] },
         { fields: ['product_id'] },
+        { fields: ['seller_id'] },
     ],
 });
 

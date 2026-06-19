@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { productApi } from '@/lib/api';
 import Button from '@/components/Ui/Button';
 import Alert from '@/components/Ui/Alert';
 
 export default function ProductsPage() {
+  const router = useRouter();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -134,14 +136,22 @@ export default function ProductsPage() {
               onClick={() => setViewProduct(product)}
               className="rounded-xl border border-zinc-200 bg-white p-5 hover:shadow-md transition-all cursor-pointer group"
             >
-              {/* Image placeholder */}
-              <div className="h-32 rounded-lg bg-zinc-100 flex items-center justify-center mb-4 group-hover:bg-zinc-50 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-300">
-                  <line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/>
-                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                  <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-                  <line x1="12" y1="22.08" x2="12" y2="12"/>
-                </svg>
+              {/* Image rendering */}
+              <div className="h-32 rounded-lg bg-zinc-100 flex items-center justify-center mb-4 group-hover:bg-zinc-50 transition-colors overflow-hidden relative border border-zinc-100">
+                {product.images && product.images.length > 0 && product.images[0] ? (
+                  <img
+                    src={product.images[0]}
+                    alt={product.name}
+                    className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-200"
+                  />
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-300">
+                    <line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/>
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                    <line x1="12" y1="22.08" x2="12" y2="12"/>
+                  </svg>
+                )}
               </div>
 
               {/* Category badge */}
@@ -220,6 +230,16 @@ export default function ProductsPage() {
               </button>
             </div>
 
+            {viewProduct.images && viewProduct.images.length > 0 && viewProduct.images[0] && (
+              <div className="h-48 rounded-xl bg-zinc-100 overflow-hidden flex items-center justify-center relative border border-zinc-200">
+                <img
+                  src={viewProduct.images[0]}
+                  alt={viewProduct.name}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            )}
+
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-3">
                 <span className="text-2xl font-bold text-zinc-900">{formatPrice(viewProduct.price)}</span>
@@ -270,6 +290,32 @@ export default function ProductsPage() {
                 <p className="text-xs text-zinc-400 mb-1">Product ID</p>
                 <p className="font-mono text-zinc-600 text-[10px] break-all">{viewProduct.id}</p>
               </div>
+
+              {viewProduct.is_active && (
+                <div className="flex items-center gap-3 pt-3">
+                  <div className="w-24 flex flex-col">
+                    <label className="text-[10px] text-zinc-400 uppercase font-semibold mb-1">Qty</label>
+                    <input
+                      type="number"
+                      min="1"
+                      defaultValue="1"
+                      id="buy-qty"
+                      className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-center"
+                    />
+                  </div>
+                  <Button
+                    variant="primary"
+                    className="flex-1 self-end py-2.5"
+                    onClick={() => {
+                      const qty = document.getElementById('buy-qty')?.value || 1;
+                      setViewProduct(null);
+                      router.push(`/checkout?productId=${viewProduct.id}&quantity=${qty}`);
+                    }}
+                  >
+                    Buy Now
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>

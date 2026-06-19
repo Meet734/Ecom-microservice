@@ -26,16 +26,16 @@ const packageDef = protoLoader.loadSync(PROTO_PATH, {
 
 const proto = grpc.loadPackageDefinition(packageDef).product;
 
-// gRPC handler implementations
 const productServiceHandlers = {
   GetProduct: async (call, callback) => {
     try {
       const product = await getProductForOrder(call.request.product_id);
       callback(null, {
-        id:    product.id,
-        name:  product.name,
-        price: product.price,
-        sku:   product.sku,
+        id:        product.id,
+        name:      product.name,
+        price:     product.price,
+        sku:       product.sku,
+        seller_id: product.seller_id || '',
       });
     } catch (err) {
       callback({
@@ -54,7 +54,13 @@ const productServiceHandlers = {
 
       const products = results
         .filter(r => r.status === 'fulfilled')
-        .map(r => r.value);
+        .map(r => ({
+          id:        r.value.id,
+          name:      r.value.name,
+          price:     r.value.price,
+          sku:       r.value.sku,
+          seller_id: r.value.seller_id || '',
+        }));
 
       callback(null, { products });
     } catch (err) {

@@ -65,3 +65,18 @@ export const updateOrderStatus = async (req, res, next) => {
         return res.status(200).json({ success: true, data: order });
     } catch (err) { next(err); }
 };
+
+export const getSellerStats = async (req, res, next) => {
+    try {
+        const stats = await orderService.getSellerStats(req.user.userId);
+        return res.status(200).json({ success: true, data: stats });
+    } catch (err) { next(err); }
+};
+
+export const getSellerOrders = async (req, res, next) => {
+    try {
+        const { page, limit, status } = req.query;
+        const result = await orderService.getSellerOrders(req.user.userId, { page, limit, status });
+        return res.status(200).json({ success: true, ...result });
+    } catch (err) { next(err); }
+};

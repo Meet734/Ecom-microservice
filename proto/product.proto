@@ -20,6 +20,7 @@ message ProductResponse {
   string name  = 2;
   int32  price = 3;  // in paise/cents
   string sku   = 4;
+  string seller_id = 5;
 }
 
 message GetProductsResponse {

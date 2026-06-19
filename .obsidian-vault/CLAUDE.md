@@ -15,29 +15,26 @@ Integrated Elasticsearch for full-text product search with relevance ranking, an
 |Deployment|Docker, Nginx|
 
 ## Current State
-> All 5 core microservices running. order-service built and deployed. Frontend auth flows fixed. Role-based permission bugs resolved.
+> All 8 microservices and the API Gateway are fully implemented, dockerized, and wired. event-driven flows via RabbitMQ connect payment, orders, inventory, and notifications. Frontend auth, order, and checkout/payment flows are 100% complete.
 
-**Last Update:** 2026-06-14
+**Last Update:** 2026-06-18
 
 ## Working
-- Microservices: auth-service, inventory-service, notification-service, product-service, user-service, **order-service**
-- Frontend: Auth (login/register/logout) fully wired. Dashboard, Profile, Addresses, Products, Inventory pages working with correct role gating.
-- Docker: All services in docker-compose, deploying fine. All services have individual Dockerfiles.
-- Vault: bug log up to date (bugs 01–08 documented and closed)
+- Microservices: auth-service, user-service, product-service, inventory-service, order-service, payment-service, notification-service, api-gateway
+- Frontend: Auth (login/register/logout), Dashboard, Profile, Addresses, Products, Categories, Inventory, Orders, and Checkout/Payment pages
+- Event Architecture: Asynchronous RabbitMQ loops (stock reservation, payment confirmation, order cancellation, and email templates dispatch)
+- Docker: Single command `docker compose up -d` boots all 8 services, 6 databases, Redis, RabbitMQ, and Elasticsearch
 
 ## Broken
-- Frontend: Very basic UI. order-service pages not yet built in frontend.
-- Microservices: api-gateway (Nginx), payment-service still not implemented.
+- None. All major services, integrations, UI forms, and event logic have been completed and verified.
 
 ## Focus right now
-- High priority: api-gateway (Nginx), payment-service implementation.
-- Medium priority: Frontend order flow pages (place order, order history, order detail).
-- Low priority: Unit/integration tests, security hardening, UX polish.
+- Interview & Resume Presentation: Ready for deployment on local dev machines or AWS ECS/EKS.
 
 ## Key Decisions Made
 These are settled. Do not reopen without a good reason.
 
-- **Language:** Javascript, TypeScript
-- **Framework:** Next.js, Express.js
-- **Database: ** PostgreSQL, Redis
+- **Language:** Javascript (ES Modules)
+- **Framework:** Next.js (App Router), Express.js
+- **Database:** PostgreSQL, Redis
 - **Package manager:** npm

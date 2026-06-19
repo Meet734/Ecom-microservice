@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { orderApi } from '@/lib/api';
 import Button from '@/components/Ui/Button';
 import Alert from '@/components/Ui/Alert';
@@ -44,6 +45,7 @@ function formatDate(dateStr) {
 }
 
 export default function OrdersPage() {
+  const router = useRouter();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -315,17 +317,15 @@ export default function OrdersPage() {
                     {/* Actions */}
                     {(canConfirm || canCancel) && (
                       <div className="flex items-center gap-2 pt-1">
-                        {canConfirm && (
-                          <Button
-                            size="sm"
-                            variant="primary"
-                            onClick={() => handleConfirm(order.id)}
-                            disabled={isActioning}
-                            isLoading={isActioning}
-                          >
-                            Confirm Order
-                          </Button>
-                        )}
+                    {canConfirm && (
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onClick={() => router.push(`/checkout?orderId=${order.id}`)}
+                      >
+                        Pay Now
+                      </Button>
+                    )}
                         {canCancel && (
                           <Button
                             size="sm"

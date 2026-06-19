@@ -4,3 +4,5 @@ CREATE DATABASE ecomm_user_db;
 CREATE DATABASE ecomm_product_db;
 CREATE DATABASE ecomm_inventory_db;
 CREATE DATABASE ecomm_order_db;
+CREATE DATABASE ecomm_payment_db;
+

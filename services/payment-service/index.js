@@ -5,33 +5,33 @@ import helmet from 'helmet';
 import env from './src/config/env.js';
 import { connectDB } from './src/config/db.js';
 import { connectRabbitMQ } from './src/config/rabbitmq.js';
-import { startConsumer } from './src/events/consumer.js';
-import orderRoutes from './src/routes/order.routes.js';
+import paymentRoutes from './src/routes/payment.routes.js';
 
-// Import models so Sequelize registers associations before sync
-import './src/models/order.model.js';
-import './src/models/orderItem.model.js';
+// Import models to register them
+import './src/models/payment.model.js';
 
 const app = express();
 
 app.use(helmet());
 app.use(cors({
-    origin:      env.ALLOWED_ORIGINS.split(','),
+    origin: env.ALLOWED_ORIGINS.split(','),
     credentials: true,
 }));
+
 app.use(express.json({ limit: '10kb' }));
 
-app.use('/api/orders', orderRoutes);
+// Base API route
+app.use('/api/payments', paymentRoutes);
 
 app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'ok', service: 'order-service' });
+    res.status(200).json({ status: 'ok', service: 'payment-service' });
 });
 
 // Global error handler
 app.use((err, req, res, next) => {
-    console.error(`[Order Error] ${err.message}`);
+    console.error(`[Payment Error] ${err.message}`, err.stack);
     const statusCode = err.statusCode || 500;
-    const message    = statusCode === 500 ? 'Internal server error' : err.message;
+    const message = statusCode === 500 ? 'Internal server error' : err.message;
     return res.status(statusCode).json({ success: false, message });
 });
 
@@ -43,12 +43,10 @@ app.use((req, res) => {
 const start = async () => {
     await connectDB();
     await connectRabbitMQ();
-    await startConsumer();
 
     app.listen(env.PORT, '0.0.0.0', () => {
-        console.log(`[Order Service] Running on port ${env.PORT} in ${env.NODE_ENV} mode`);
+        console.log(`[Payment Service] Running on port ${env.PORT} in ${env.NODE_ENV} mode`);
     });
 };
 
 start();
-

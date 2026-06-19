@@ -49,6 +49,24 @@ router.post(
     controller.cancelOrder
 );
 
+// ── Seller routes ───────────────────────────────────────────────────────────
+
+// Get seller statistics
+router.get(
+    '/seller/stats',
+    authenticate,
+    authorize('seller', 'admin'),
+    controller.getSellerStats
+);
+
+// Get seller orders
+router.get(
+    '/seller/orders',
+    authenticate,
+    authorize('seller', 'admin'),
+    controller.getSellerOrders
+);
+
 // ── Admin routes ───────────────────────────────────────────────────────────
 
 // List all orders across all users (admin only)

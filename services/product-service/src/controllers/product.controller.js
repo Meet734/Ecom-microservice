@@ -40,9 +40,10 @@ export const getProduct = async (req, res, next) => {
 
 export const listProducts = async (req, res, next) => {
   try {
-    const { category_id, page, limit, sort } = req.query;
+    const { category_id, seller_id, page, limit, sort } = req.query;
     const result = await productService.listProducts({
       category_id,
+      seller_id,
       page:  parseInt(page)  || 1,
       limit: parseInt(limit) || 20,
       sort,

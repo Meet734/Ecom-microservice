@@ -8,8 +8,8 @@ const router = Router();
 // Read: any authenticated user can check stock availability
 router.get('/:productId', authenticate, controller.getInventory);
 
-// Write: admin only
-router.post('/', authenticate, authorize('admin'), validate('initializeInventory'), controller.initializeInventory);
-router.post('/:productId/restock', authenticate, authorize('admin'), validate('restock'), controller.restock);
+// Write: admin and seller
+router.post('/', authenticate, authorize('admin', 'seller'), validate('initializeInventory'), controller.initializeInventory);
+router.post('/:productId/restock', authenticate, authorize('admin', 'seller'), validate('restock'), controller.restock);
 
 export default router;

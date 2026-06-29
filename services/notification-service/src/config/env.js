@@ -4,6 +4,7 @@ import { cleanEnv, str, port, num } from 'envalid';
 
 const env = cleanEnv(process.env, {
   NODE_ENV:        str({ choices: ['development', 'production', 'test'], default: 'development' }),
+  PORT:            port({ default: 3007 }),
   RABBITMQ_URL:    str({ default: 'amqp://guest:guest@localhost:5672' }),
 
   // SMTP — use Mailtrap in dev, real provider (SES, SendGrid) in prod.

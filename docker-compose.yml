@@ -245,6 +245,8 @@ services:
   notification-service:
     build: ./services/notification-service
     container_name: ecomm_notification_service
+    ports:
+      - "3007:3007"
     volumes:
       - ./services/notification-service:/usr/src/app
       - /usr/src/app/node_modules
@@ -260,6 +262,12 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3007/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
     restart: unless-stopped
 
   api-gateway:

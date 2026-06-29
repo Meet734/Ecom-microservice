@@ -65,6 +65,9 @@ export const startConsumer = async () => {
     }
   }
 
+  // Set global prefetch BEFORE starting consumers to properly limit message flow
+  channel.prefetch(1);
+
   // Assert queues, bind, then consume
   for (const sub of SUBSCRIPTIONS) {
     const { queue } = await channel.assertQueue(sub.queue, {
@@ -95,9 +98,6 @@ export const startConsumer = async () => {
       }
     });
   }
-
-  // One global prefetch — process one message at a time across all queues
-  channel.prefetch(1);
 
   console.log(
     '[Notification Consumer] Listening on:',

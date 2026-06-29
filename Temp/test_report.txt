@@ -189,7 +189,7 @@ CHECKLIST 3:
   [FAIL]    application_logs index exists in Elasticsearch (No Fluent Bit or structured logger index)
   [FAIL]    Kibana accessible and green (Kibana is not in compose)
   [FAIL]    Fluent Bit running and shipping logs to Elasticsearch (Fluent Bit is not in compose)
-  [PARTIAL] All 7 services return HTTP 200 on /health (All except notification-service which exposes no port)
+  [PASS]    All 7 services return HTTP 200 on /health (All services, including notification-service on port 3007, return HTTP 200 on /health)
   [PARTIAL] API Gateway /health returns gateway_up (Gateway returns status ok, service api-gateway on port 8000)
   [PASS]    envalid validation present and working
 

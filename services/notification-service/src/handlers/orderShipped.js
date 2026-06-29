@@ -2,7 +2,8 @@ import { sendEmail } from '../config/mailer.js';
 import { orderShippedTemplate } from '../templates/index.js';
 
 export const handleOrderShipped = async (payload) => {
-  const { userEmail, orderId, trackingId, estimatedDelivery } = payload;
+  const { orderId, trackingId, estimatedDelivery } = payload;
+  const userEmail = payload.email || payload.userEmail || payload.user_email;
 
   const template = orderShippedTemplate({ orderId, trackingId, estimatedDelivery });
 
